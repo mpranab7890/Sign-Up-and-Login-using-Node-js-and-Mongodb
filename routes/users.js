@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user.js')
-
+var bcrypt = require('bcryptjs')
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   res.render('register');
@@ -35,24 +35,33 @@ router.post('/register' , (req , res) => {
 	req.checkBody('PhoneNumber' , 'Phone Number field is required').notEmpty()
 	req.checkBody('PhoneNumber' , 'Invalid phone number').isMobilePhone()
 
-
-
-	var errors = req.validationErrors()
-	console.log(errors)
-	if(errors) {
-		console.log('Error!!')
-		for (var err in errors){
+	bcrypt.genSalt(10, function(err, salt) {
+    bcrypt.hash(data.password, salt, function(err, hash) {
+        data.password = hash
+        // console.log(hash)
+        // console.log(data.password)
+        var errors = req.validationErrors()
+		console.log(errors)
+		if(errors) {
+			console.log('Error!!')
+			for (var err in errors){
 			console.log(err.message)
+			}
+			res.render('register' , {title: 'Register' , errors : errors});
 		}
-		res.render('register' , {title: 'Register' , errors : errors});
-	}
-	 else{
-	 	console.log('All good')
-	 	var database = new User(data)
-	 	database.save()
-	 	req.flash('success' , 'You are now registered!')
-	 	res.redirect('/')	
-	 }
+	 	else{
+	 		console.log('All good')
+	 		var database = new User(data)
+	 		database.save()
+	 		req.flash('success' , 'You are now registered!')
+	 		res.redirect('/')	
+		}	
+        
+    });
+});
+	// console.log(data.password)
+
+
 })
 
 module.exports = router;
