@@ -9,7 +9,7 @@ var bodyParser = require('body-parser')
 var mongo = require('mongodb')
 var mongoose = require('mongoose')
 var passport = require('passport')
-var LoaclStrategy = require('passport-local')
+var LocalStrategy = require('passport-local').Strategy
 var flash = require('connect-flash');
 var validator = require('validator')
 

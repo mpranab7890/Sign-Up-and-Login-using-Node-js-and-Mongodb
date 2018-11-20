@@ -2,7 +2,20 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user.js')
 var bcrypt = require('bcryptjs')
+var session = require('express-session')
+
+var passport = require('passport')
+var LocalStrategy = require('passport-local').Strategy
+
 /* GET users listing. */
+// router.use(session({
+// 	secret: 'secret',
+// 	saveUninitialized: true,
+// 	resave:true
+// }))
+// router.use(passport.initialize());
+// router.use(passport.session());
+
 router.get('/', function(req, res, next) {
   res.render('register');
 });
@@ -64,4 +77,44 @@ router.post('/register' , (req , res) => {
 
 })
 
+// router.post('/login' , (req , res , next) => {
+// 	passport.authenticate('local' , {failureRedirect : '/users/login' , successRedirect : '/success'})(req , res , next)
+// })
+
+
+
+passport.use(new LocalStrategy(
+  function(email, password, done) {
+    User.findOne({ email: email }, function (err, user) {
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect email.' });
+      }
+      bcrypt.compare(password , user.password , (err , match) => {
+      	if(!match) {return done(null,false,{ message: 'Incorrect password.' })}
+      })
+      return done(null, user);
+    });
+  }
+));
+
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
+
+
+
+
+router.post('/login' , 
+	passport.authenticate('local' , {failureRedirect : '/users/login' , successRedirect : '/success'}) , 
+	(req , res , next)=> {
+		res.redirect('/success')
+	}
+)
 module.exports = router;
